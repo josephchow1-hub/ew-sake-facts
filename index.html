@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#11385f">
+<title>Sake Facts · Everything Wine Staff Tool</title>
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Sake+Facts%22%2C%22short_name%22%3A%22Sake%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23EFE7D8%22%2C%22theme_color%22%3A%22%2311385f%22%7D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Marcellus&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EF;--page:#EFE7D8;--ink:#2A2320;--ink-soft:#7A6F64;--ink-faint:#B6A998;
+    --line:#E6DCCB;--line-strong:#D8CCB6;--wine:#11385f;--wine-dark:#0b2a47;--wine-tint:#E0EAF3;
+    --gold:#C49A4A;--gold-light:#FBF3E2;--sake:#5B7A6B;--sake-light:#EAF2EE;
+    --sans:'Hanken Grotesk',system-ui,sans-serif;--serif:'Marcellus',Georgia,serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:radial-gradient(120% 80% at 50% -10%,#F6EFE2 0%,var(--page) 60%) fixed;
+    color:var(--ink);min-height:100vh;display:flex;justify-content:center;
+    padding:32px 16px 40px;-webkit-font-smoothing:antialiased;
+  }
+  .screen{
+    background:var(--paper);border-radius:18px;border:1px solid var(--line-strong);
+    box-shadow:0 1px 0 rgba(255,255,255,0.6) inset,0 18px 50px -24px rgba(60,30,20,0.45);
+    overflow:hidden;width:100%;max-width:452px;align-self:flex-start;
+  }
+
+  /* Masthead */
+  .masthead{padding:22px 22px 18px;border-bottom:1px solid var(--line);position:relative;}
+  .masthead::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+    background:linear-gradient(90deg,var(--wine) 0%,var(--wine) 60%,var(--gold) 60%,var(--gold) 100%);opacity:0.9;}
+  .brand-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .brand-mark{width:30px;height:30px;border-radius:50%;background:var(--wine);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark span{font-family:var(--serif);color:#F6E3C8;font-size:15px;line-height:1;}
+  .brand-over{font-size:10.5px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--wine);}
+  .brand-sub{font-size:11px;color:var(--ink-soft);letter-spacing:0.04em;margin-top:1px;}
+  .masthead h1{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.05;color:var(--wine);letter-spacing:0.01em;}
+  .masthead .tagline{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+
+  /* Filters */
+  .filter-wrap{padding:14px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#FFFDF8,#FBF6ED);}
+  .filter-label{font-size:10.5px;font-weight:700;color:var(--ink-faint);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;}
+  .filters{display:flex;flex-wrap:wrap;gap:7px;}
+  .filter-btn{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:99px;cursor:pointer;border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);font-family:var(--sans);transition:background .12s,color .12s,border-color .12s;-webkit-tap-highlight-color:transparent;}
+  .filter-btn:hover{border-color:var(--wine);color:var(--wine);}
+  .filter-btn.active{background:var(--wine);color:#FBF3E6;border-color:var(--wine);}
+
+  /* Cards */
+  .cards{padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+  .card.hidden{display:none;}
+  .card-header{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);}
+  .card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .dot-class{background:#5B7A6B;}
+  .dot-style{background:#8B6B4A;}
+  .dot-label{background:#11385f;}
+  .dot-rice{background:#B8860B;}
+  .dot-flavour{background:#7B4F8B;}
+  .dot-production{background:#4A6B8B;}
+  .card-title{font-family:var(--serif);font-size:16px;font-weight:400;color:var(--wine);flex:1;}
+  .card-tag{font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);background:var(--page);flex-shrink:0;}
+  .card-body{padding:13px 16px;display:flex;flex-direction:column;gap:10px;}
+  .row{display:flex;gap:8px;align-items:flex-start;}
+  .row-label{font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);min-width:72px;padding-top:1px;flex-shrink:0;}
+  .row-val{font-size:13px;color:var(--ink);line-height:1.5;flex:1;}
+  .row-val strong{font-weight:600;color:var(--wine);}
+  .divider{height:1px;background:var(--line);margin:2px 0;}
+  .pills-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
+  .style-pill{font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:99px;border:1px solid var(--sake);background:var(--sake-light);color:var(--sake);cursor:pointer;transition:background .12s,color .12s;-webkit-tap-highlight-color:transparent;}
+  .style-pill:hover{background:var(--sake);color:#fff;}
+  .style-pill:active{transform:scale(0.96);}
+  .pairing-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;}
+  .pairing-pill{font-size:11.5px;padding:4px 10px;border-radius:99px;border:1px solid var(--gold-light);background:var(--gold-light);color:#7a5a1a;font-weight:500;}
+
+  /* Drawers */
+  .style-drawer{display:none;margin-top:8px;background:#F7FAF8;border:1px solid var(--sake);border-radius:12px;overflow:hidden;}
+  .style-drawer.open{display:block;}
+  .drawer-header{background:var(--sake);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;}
+  .drawer-title{font-family:var(--serif);font-size:15px;color:#fff;}
+  .drawer-close{background:none;border:none;color:rgba(255,255,255,0.7);font-size:20px;line-height:1;cursor:pointer;padding:0 2px;font-family:var(--sans);}
+  .drawer-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
+  .d-row{display:flex;gap:8px;align-items:flex-start;}
+  .d-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint);min-width:64px;padding-top:1px;flex-shrink:0;}
+  .d-val{font-size:12.5px;color:var(--ink);line-height:1.5;flex:1;}
+  .d-val strong{font-weight:600;color:var(--sake);}
+  .d-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;}
+  .d-pill{font-size:11px;padding:3px 9px;border-radius:99px;background:var(--gold-light);border:1px solid #e8d49a;color:#7a5a1a;font-weight:500;}
+  .d-sell{background:#EAF2EE;border:1px solid #b0d4c0;color:#2d5a45;font-size:12px;border-radius:8px;padding:9px 11px;line-height:1.5;margin-top:4px;}
+  .d-sell strong{font-weight:700;display:block;margin-bottom:2px;color:#1e4030;}
+  .d-divider{height:1px;background:var(--line);}
+
+  /* ── BACK LABEL MOCK ── */
+  .label-wrap{padding:4px 0 8px;}
+  .mock-label{
+    border:1.5px solid #aaa;border-radius:4px;overflow:hidden;
+    font-family:var(--sans);background:#fff;
+  }
+  .ml-title{
+    background:#1a1a1a;color:#fff;text-align:center;
+    font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;
+    padding:6px 10px;
+  }
+  .ml-brand{
+    text-align:center;padding:8px 10px 4px;
+    border-bottom:1px solid #ddd;
+  }
+  .ml-brand .ml-name{font-family:var(--serif);font-size:17px;color:#1a1a1a;}
+  .ml-brand .ml-type{font-size:10px;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-top:2px;}
+  .ml-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #ddd;}
+  .ml-cell{padding:7px 10px;border-right:1px solid #ddd;cursor:pointer;}
+  .ml-cell:nth-child(even){border-right:none;}
+  .ml-cell:active{background:#f5f5f5;}
+  .ml-key{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#888;}
+  .ml-val{font-size:15px;font-weight:700;color:#1a1a1a;margin-top:2px;}
+  .ml-hint{font-size:10px;color:#aaa;margin-top:1px;}
+  .ml-smv-bar{margin:0 10px 8px;padding-top:6px;border-top:1px solid #eee;}
+  .ml-smv-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#888;margin-bottom:5px;}
+  .smv-track{position:relative;height:16px;background:linear-gradient(90deg,#6B9FD4 0%,#e8e4de 50%,#C49A4A 100%);border-radius:99px;overflow:visible;}
+  .smv-center{position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:#333;transform:translateX(-50%);}
+  .smv-marker{position:absolute;top:-3px;width:10px;height:22px;background:#1a1a1a;border-radius:3px;transform:translateX(-50%);transition:left .3s;}
+  .smv-labels{display:flex;justify-content:space-between;font-size:9px;color:#999;margin-top:3px;}
+  .ml-footer{background:#f8f8f8;padding:6px 10px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee;}
+  .ml-tap-hint{font-size:10px;color:var(--sake);text-align:center;padding:5px;font-weight:600;}
+
+  /* Label detail popups */
+  .label-detail{display:none;background:#FDFAF4;border:1px solid var(--gold);border-radius:10px;padding:12px 14px;margin-top:6px;}
+  .label-detail.open{display:block;}
+  .ld-title{font-size:12px;font-weight:700;color:var(--wine);margin-bottom:6px;}
+  .ld-body{font-size:12.5px;color:var(--ink);line-height:1.55;}
+  .ld-body strong{color:var(--sake);}
+
+  footer{border-top:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;}
+  footer span{font-size:11px;color:var(--ink-faint);}
+  footer a{font-size:11px;font-weight:600;color:var(--ink-soft);text-decoration:none;}
+  footer a:hover{color:var(--wine);}
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <div class="masthead">
+    <div class="brand-row">
+      <div class="brand-mark"><span>EW</span></div>
+      <div>
+        <div class="brand-over">Everything Wine</div>
+        <div class="brand-sub">River District Vancouver</div>
+      </div>
+    </div>
+    <h1>Sake Facts</h1>
+    <p class="tagline">SSI reference for staff — tap any term for plain-English details.</p>
+  </div>
+
+  <div class="filter-wrap">
+    <div class="filter-label">Filter by</div>
+    <div class="filters">
+      <button class="filter-btn active" onclick="filter('all')">All</button>
+      <button class="filter-btn" onclick="filter('class')">Classification</button>
+      <button class="filter-btn" onclick="filter('style')">Style Terms</button>
+      <button class="filter-btn" onclick="filter('label')">Back Label</button>
+      <button class="filter-btn" onclick="filter('rice')">Rice</button>
+      <button class="filter-btn" onclick="filter('flavour')">Flavour</button>
+      <button class="filter-btn" onclick="filter('production')">Production</button>
+    </div>
+  </div>
+
+  <div class="cards">
+
+    <!-- ══ 8 CLASSIFICATIONS ══ -->
+    <div class="card" data-cat="class">
+      <div class="card-header"><span class="card-dot dot-class"></span><span class="card-title">The 8 Designated Classifications</span><span class="card-tag">Tokutei Meishoshu</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">What is it</span><span class="row-val">Japan's official premium sake categories. If a sake has one of these names on the label, it meets strict quality standards. These are the ones worth knowing.</span></div>
+        <div class="row"><span class="row-label">Tap to learn</span>
+          <div class="pills-row">
+            <span class="style-pill" onclick="openDrawer('junmai',this)">Junmai</span>
+            <span class="style-pill" onclick="openDrawer('junmai-ginjo',this)">Junmai Ginjo</span>
+            <span class="style-pill" onclick="openDrawer('junmai-daiginjo',this)">Junmai Daiginjo</span>
+            <span class="style-pill" onclick="openDrawer('honjozo',this)">Honjozo</span>
+            <span class="style-pill" onclick="openDrawer('ginjo',this)">Ginjo</span>
+            <span class="style-pill" onclick="openDrawer('daiginjo',this)">Daiginjo</span>
+            <span class="style-pill" onclick="openDrawer('tokubetsu-junmai',this)">Tokubetsu Junmai</span>
+            <span class="style-pill" onclick="openDrawer('tokubetsu-honjozo',this)">Tokubetsu Honjozo</span>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-junmai">
+          <div class="drawer-header"><span class="drawer-title">Junmai 純米</span><button class="drawer-close" onclick="closeDrawer('junmai')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Pure rice</strong> — made from only rice, water, koji, and yeast. No added alcohol. No RPR minimum.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">No legal minimum — typically 70% or below (30%+ polished away).</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Full-bodied, rich, savoury, umami-forward. Earthy and robust. Pairs beautifully with food.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Room temp (20°C) or warm (40–45°C). Very versatile with temperature.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Grilled fish</span><span class="d-pill">Yakitori</span><span class="d-pill">Ramen</span><span class="d-pill">Aged cheese</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is pure rice sake — nothing added, just rice and water. It has a rich, full flavour that goes really well with food. Think of it like a full-bodied white wine — great with savoury dishes."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-junmai-ginjo">
+          <div class="drawer-header"><span class="drawer-title">Junmai Ginjo 純米吟醸</span><button class="drawer-close" onclick="closeDrawer('junmai-ginjo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Pure rice + ginjo-level polish</strong>. No added alcohol. Rice polished to at least 60% remaining (40% removed).</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">60% or below.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Fruity, floral, clean. Light to medium body. Apple, pear, melon, gentle rice. More aromatic than Junmai.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled (10–15°C). Preserve the delicate aromas.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Sashimi</span><span class="d-pill">Light seafood</span><span class="d-pill">Tofu dishes</span><span class="d-pill">Mild cheese</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is a great starter sake — it's fruity and floral, almost like a light white wine. Serve it cold and it's really refreshing. No sake flavour they might be worried about, just clean and delicate."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-junmai-daiginjo">
+          <div class="drawer-header"><span class="drawer-title">Junmai Daiginjo 純米大吟醸</span><button class="drawer-close" onclick="closeDrawer('junmai-daiginjo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Pure rice + highest polish level</strong>. No added alcohol. The pinnacle of the Junmai category. Rice polished to at least 50% remaining.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">50% or below — half the rice grain polished away. Labour and ingredient intensive.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Highly aromatic, complex, elegant. Tropical fruit, white flowers, melon, clean finish. Very refined.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Well chilled (8–12°C). Glencairn or white wine glass to capture aroma.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Oysters</span><span class="d-pill">Sashimi</span><span class="d-pill">Light sushi</span><span class="d-pill">On its own</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is premium sake — the rice has been polished down to almost half its original size, which is why it's so clean and aromatic. If they've never liked sake before, this is the one to change their mind. Serve it cold like a fine white wine."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-honjozo">
+          <div class="drawer-header"><span class="drawer-title">Honjozo 本醸造</span><button class="drawer-close" onclick="closeDrawer('honjozo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>True brewed</strong>. A small amount of distilled alcohol added — not to increase volume, but to enhance aroma and lighten body. RPR 70% or below.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">70% or below.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Light, clean, slightly dry. Mild rice flavour, gentle aroma. Smooth and easy-drinking.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled, room temp, or warm. Very versatile — great everyday sake.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Tempura</span><span class="d-pill">Grilled chicken</span><span class="d-pill">Noodles</span><span class="d-pill">Everyday Japanese</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is an everyday drinking sake — light, clean, and very food-friendly. The small amount of added alcohol actually makes it smoother and more aromatic, not stronger. Think of it as a lighter, crisper style."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-ginjo">
+          <div class="drawer-header"><span class="drawer-title">Ginjo 吟醸</span><button class="drawer-close" onclick="closeDrawer('ginjo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Ginjo-level polish + small amount of added alcohol</strong>. Fruity and aromatic. More affordable entry to premium sake.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">60% or below.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Fruity, floral, light. Apple, pear, banana, floral notes. Clean and aromatic. Similar to Junmai Ginjo but lighter.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled (10–14°C).</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Sashimi</span><span class="d-pill">Steamed seafood</span><span class="d-pill">Light salads</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is a fruity, fragrant sake — serve it cold and it almost smells like flowers and green apple. A great choice for someone who enjoys crisp white wine and wants to try something different."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-daiginjo">
+          <div class="drawer-header"><span class="drawer-title">Daiginjo 大吟醸</span><button class="drawer-close" onclick="closeDrawer('daiginjo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Highest polish + small added alcohol</strong>. The most refined and aromatic premium style. Highly polished, slow cold fermentation.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">50% or below.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Intensely aromatic, silky, ultra-refined. Tropical fruit, melon, white flowers, clean long finish.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Well chilled (8–10°C). Wine glass to appreciate aromatics.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Delicate sashimi</span><span class="d-pill">Chawanmushi</span><span class="d-pill">On its own</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is competition-level sake — beautifully aromatic and silky smooth. If someone wants to impress at a dinner or try something truly special, this is the one. Serve it cold in a wine glass and just enjoy the aroma before tasting."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-tokubetsu-junmai">
+          <div class="drawer-header"><span class="drawer-title">Tokubetsu Junmai 特別純米</span><button class="drawer-close" onclick="closeDrawer('tokubetsu-junmai')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Special Junmai</strong>. Pure rice sake with either higher polish than standard Junmai (60% or below) OR a special brewing technique. Brewer's discretion.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">60% or below, OR special brewing method declared on label.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Varies by producer. Generally between Junmai and Junmai Ginjo — more character than standard Junmai.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled or room temp depending on style.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "The 'tokubetsu' means special — the brewer has gone beyond the minimum requirements, either by polishing more or using a unique technique. It's a step up from regular Junmai with more complexity."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-tokubetsu-honjozo">
+          <div class="drawer-header"><span class="drawer-title">Tokubetsu Honjozo 特別本醸造</span><button class="drawer-close" onclick="closeDrawer('tokubetsu-honjozo')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val"><strong>Special Honjozo</strong>. Like Honjozo but with higher polish (60% or below) OR a special brewing technique. Small added alcohol.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">RPR</span><span class="d-val">60% or below, OR special method declared.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Lighter and more aromatic than standard Honjozo. Clean, dry, subtle fruitiness. Easy drinking.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled or slightly warm. Very food-friendly.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "This is a step-up everyday sake — cleaner and more aromatic than standard, but still very approachable. Great value for the quality. Works warm or cold which makes it very flexible."</div>
+          </div>
+        </div>
+
+        <div class="row"><span class="row-label">Quick rule</span><span class="row-val"><strong>Junmai</strong> = pure rice only · <strong>No Junmai</strong> = small added alcohol · <strong>Ginjo</strong> = 60% RPR · <strong>Daiginjo</strong> = 50% RPR · <strong>Tokubetsu</strong> = special</span></div>
+      </div>
+    </div>
+
+    <!-- ══ STYLE TERMS ══ -->
+    <div class="card" data-cat="style">
+      <div class="card-header"><span class="card-dot dot-style"></span><span class="card-title">Important Style Terms</span><span class="card-tag">Terminology</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">What is it</span><span class="row-val">These words appear on sake labels alongside the classification. Each changes the flavour, texture, or character significantly.</span></div>
+        <div class="row"><span class="row-label">Tap to learn</span>
+          <div class="pills-row">
+            <span class="style-pill" onclick="openDrawer('nama',this)">Nama</span>
+            <span class="style-pill" onclick="openDrawer('nigori',this)">Nigori</span>
+            <span class="style-pill" onclick="openDrawer('genshu',this)">Genshu</span>
+            <span class="style-pill" onclick="openDrawer('muroka',this)">Muroka</span>
+            <span class="style-pill" onclick="openDrawer('kimoto',this)">Kimoto / Yamahai</span>
+            <span class="style-pill" onclick="openDrawer('koshu',this)">Koshu</span>
+            <span class="style-pill" onclick="openDrawer('sparkling-sake',this)">Sparkling</span>
+            <span class="style-pill" onclick="openDrawer('taruzake',this)">Taruzake</span>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-nama">
+          <div class="drawer-header"><span class="drawer-title">Nama 生 — Unpasteurised</span><button class="drawer-close" onclick="closeDrawer('nama')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake that has <strong>not been pasteurised</strong>. Most sake is heated twice to stabilise it. Nama skips this entirely or partially.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Fresh, lively, vibrant. Has a characteristic "namazake" freshness — like the difference between fresh bread and packaged bread. Slightly grassy, bright, energetic.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Storage</span><span class="d-val"><strong>Must be refrigerated at all times.</strong> Degrades quickly if not kept cold. Shorter shelf life.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Staff tip</span><span class="d-val">Always keep in the cold section. Tell customers to refrigerate at home and drink within a few months of purchase.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Nama means it's unpasteurised — think of it like fresh juice versus packaged juice. It has this amazing fresh, vibrant quality you can't get in regular sake. Just keep it cold and enjoy it soon after opening."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-nigori">
+          <div class="drawer-header"><span class="drawer-title">Nigori 濁り — Cloudy Sake</span><button class="drawer-close" onclick="closeDrawer('nigori')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Roughly filtered sake — rice solids left in. Ranges from lightly cloudy to very thick and milky.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Creamy, sweet, rich. Rice pudding, coconut, banana, vanilla. The residual rice adds sweetness and body.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Shake gently before pouring to mix the sediment. Serve chilled.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Staff tip</span><span class="d-val">Most popular sake style for first-timers — the sweetness and creaminess is very approachable.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Nigori is cloudy sake — it still has some rice in it which makes it creamy and a little sweet. It's actually the most popular style for people trying sake for the first time because it tastes almost like a light rice dessert. Serve it cold."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-genshu">
+          <div class="drawer-header"><span class="drawer-title">Genshu 原酒 — Undiluted</span><button class="drawer-close" onclick="closeDrawer('genshu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake that has <strong>not been diluted with water</strong> after brewing. Most sake is diluted to ~15%. Genshu is typically 17–20% ABV.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Bolder, richer, more concentrated. Intense flavour, more alcohol warmth. Still balanced — not harsh.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Neat, on the rocks (the ice dilutes it slightly), or with a splash of water.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Genshu means undiluted — it comes straight from the tank without adding water, so it's a bit stronger and more concentrated. Think of it like cask-strength whisky. Great on the rocks where the ice slowly opens it up."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-muroka">
+          <div class="drawer-header"><span class="drawer-title">Muroka 無濾過 — Unfiltered</span><button class="drawer-close" onclick="closeDrawer('muroka')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake that has <strong>not been charcoal filtered</strong>. Most sake passes through activated charcoal to clarify and remove flavour compounds. Muroka skips this.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">More complex, raw, expressive. Can be slightly yellow/green in colour. More umami, more texture, more character.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Note</span><span class="d-val">Often seen combined: Muroka Nama Genshu = unfiltered, unpasteurised, undiluted — the most natural expression possible.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Muroka means they didn't filter it through charcoal, so all the natural flavour and complexity is preserved. It can look slightly golden — that's normal. It tastes more bold and textured than regular sake."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-kimoto">
+          <div class="drawer-header"><span class="drawer-title">Kimoto 生酛 / Yamahai 山廃</span><button class="drawer-close" onclick="closeDrawer('kimoto')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Traditional yeast starter methods. <strong>Kimoto</strong> = labour-intensive process using wooden poles to mash rice. <strong>Yamahai</strong> = simplified kimoto (no pole-ramming). Both allow wild lactic acid bacteria — more complex fermentation.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Richer, more complex, gamey, earthy, lactic. Yoghurt, earth, mushroom, umami. Robust and savoury. The opposite of delicate Ginjo styles.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Room temp or warm to bring out the complexity. Excellent with rich food.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Kimoto and Yamahai are traditional brewing methods — think of them like natural wine or sourdough. They use wild bacteria to develop more complex, earthy flavours. It's a completely different experience from light fruity sake — more savoury and textured."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-koshu">
+          <div class="drawer-header"><span class="drawer-title">Koshu 古酒 — Aged Sake</span><button class="drawer-close" onclick="closeDrawer('koshu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake aged for an extended period — typically 3 years or more. Very rare. Goes against the usual "fresh is best" sake ethos.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Deep amber colour. Sherry-like, caramel, dried fruit, honey, soy, mushroom, nutty. Like an oxidised wine or old Madeira.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Room temp or slightly warm. Small portions — very intense.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Aged sake is very rare and unique — it develops deep caramel and nutty flavours over years, almost like a sherry or aged rum. Completely different from fresh sake. A real conversation piece for adventurous drinkers."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-sparkling-sake">
+          <div class="drawer-header"><span class="drawer-title">Sparkling Sake 発泡性</span><button class="drawer-close" onclick="closeDrawer('sparkling-sake')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake with carbonation — either from in-bottle secondary fermentation (like Champagne) or CO2 injection. Growing category.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Light, refreshing, often slightly sweet. Fruity, gentle rice flavour, fine bubbles. Very approachable entry point.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Well chilled in a flute or white wine glass. Perfect as an aperitif.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Sparkling sake is like Champagne's Japanese cousin — light, bubbly, and great as an aperitif or celebration drink. Very easy to enjoy even for people who have never had sake before."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-taruzake">
+          <div class="drawer-header"><span class="drawer-title">Taruzake 樽酒 — Cedar-aged</span><button class="drawer-close" onclick="closeDrawer('taruzake')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Meaning</span><span class="d-val">Sake aged or stored in <strong>Japanese cedar (sugi) barrels</strong>. Traditional style, often associated with celebrations and brewery openings.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Distinctive woody, cedar, pine, almost herbal character. Refreshing and aromatic. Polarising — either love it or don't.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Slightly warm or room temp to bring out the wood aroma. Traditional wooden masu cup if available.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Taruzake has been aged in cedar wood barrels which gives it a unique woody, pine-like aroma. It's a very traditional style — Japanese breweries often serve it at festivals and celebrations. A real talking point!"</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ BACK LABEL CHEAT SHEET ══ -->
+    <div class="card" data-cat="label">
+      <div class="card-header"><span class="card-dot dot-label"></span><span class="card-title">Back Label Cheat Sheet</span><span class="card-tag">Reading Labels</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">How to use</span><span class="row-val">Tap any field on the mock label below for a plain-English explanation of what it means.</span></div>
+
+        <div class="label-wrap">
+          <div class="mock-label">
+            <div class="ml-title">Sake Information Panel</div>
+            <div class="ml-brand">
+              <div class="ml-name">Dewatsuru Junmai Ginjo</div>
+              <div class="ml-type">純米吟醸 · Example Label</div>
+            </div>
+            <div class="ml-tap-hint">↓ Tap any field to learn what it means ↓</div>
+            <div class="ml-grid">
+              <div class="ml-cell" onclick="toggleLabelDetail('rpr')">
+                <div class="ml-key">Rice Polishing Ratio (RPR)</div>
+                <div class="ml-val">60%</div>
+                <div class="ml-hint">Seimaibuai</div>
+              </div>
+              <div class="ml-cell" onclick="toggleLabelDetail('smv')">
+                <div class="ml-key">Sake Meter Value (SMV)</div>
+                <div class="ml-val">+3</div>
+                <div class="ml-hint">Nihonshu-do</div>
+              </div>
+              <div class="ml-cell" onclick="toggleLabelDetail('acidity')">
+                <div class="ml-key">Acidity</div>
+                <div class="ml-val">1.4</div>
+                <div class="ml-hint">Sando</div>
+              </div>
+              <div class="ml-cell" onclick="toggleLabelDetail('abv')">
+                <div class="ml-key">Alcohol</div>
+                <div class="ml-val">15.5%</div>
+                <div class="ml-hint">Arukoru-do</div>
+              </div>
+              <div class="ml-cell" onclick="toggleLabelDetail('rice')">
+                <div class="ml-key">Rice Type</div>
+                <div class="ml-val" style="font-size:13px;">Yamada Nishiki</div>
+                <div class="ml-hint">Sakamai</div>
+              </div>
+              <div class="ml-cell" onclick="toggleLabelDetail('yeast')">
+                <div class="ml-key">Yeast</div>
+                <div class="ml-val" style="font-size:13px;">No. 9</div>
+                <div class="ml-hint">Kobo</div>
+              </div>
+            </div>
+            <div class="ml-smv-bar">
+              <div class="ml-smv-label">Sweetness ← SMV Scale → Dryness</div>
+              <div class="smv-track">
+                <div class="smv-center"></div>
+                <div class="smv-marker" id="smvMarker" style="left:55%;"></div>
+              </div>
+              <div class="smv-labels"><span>Sweet (−10)</span><span>Neutral (0)</span><span>Dry (+10)</span></div>
+            </div>
+            <div class="ml-footer">Akita Prefecture, Japan · 720ml</div>
+          </div>
+        </div>
+
+        <div class="label-detail" id="detail-rpr">
+          <div class="ld-title">Rice Polishing Ratio (RPR) — Seimaibuai 精米歩合</div>
+          <div class="ld-body"><strong>What % of the rice grain remains after polishing.</strong> The outer layer of rice contains proteins and fats that can make sake harsh — polishing removes them.<br><br>
+          <strong>Lower % = more polished = cleaner, more aromatic sake.</strong><br>
+          70% = Honjozo/Junmai minimum<br>
+          60% = Ginjo minimum<br>
+          50% = Daiginjo minimum<br>
+          23% = Most extreme polish (ultra-premium)<br><br>
+          Think of it like this: <strong>the lower the RPR number, the more premium the sake.</strong></div>
+        </div>
+
+        <div class="label-detail" id="detail-smv">
+          <div class="ld-title">Sake Meter Value (SMV) — Nihonshu-do 日本酒度</div>
+          <div class="ld-body"><strong>A scale of sweetness vs dryness.</strong><br><br>
+          <strong>Positive (+) = Dry</strong> — more alcohol than sugar<br>
+          <strong>Negative (−) = Sweet</strong> — more residual sugar<br>
+          <strong>Zero (0) = Neutral</strong><br><br>
+          Typical ranges:<br>
+          −3 and below = noticeably sweet<br>
+          −2 to +1 = slightly sweet to neutral<br>
+          +2 to +4 = slightly dry (most common)<br>
+          +5 and above = dry to very dry<br><br>
+          <strong>Quick tip:</strong> Most customers enjoy +1 to +3. Very dry (+6 and up) suits experienced sake drinkers.</div>
+        </div>
+
+        <div class="label-detail" id="detail-acidity">
+          <div class="ld-title">Acidity — Sando 酸度</div>
+          <div class="ld-body"><strong>The level of organic acids in the sake.</strong> Works alongside SMV to define the overall taste impression.<br><br>
+          Average acidity: <strong>1.2–1.5</strong><br><br>
+          <strong>High acidity (1.6+)</strong> = crisp, refreshing, food-friendly. Can make even sweet sake taste drier.<br>
+          <strong>Low acidity (1.0−)</strong> = soft, smooth, gentle<br><br>
+          <strong>Quick tip:</strong> High acid + high SMV = sharp and dry. High acid + low SMV = tart-sweet like yoghurt. Low acid + low SMV = soft and sweet.</div>
+        </div>
+
+        <div class="label-detail" id="detail-abv">
+          <div class="ld-title">Alcohol — Arukoru-do アルコール度</div>
+          <div class="ld-body"><strong>Most sake is 14–16% ABV</strong> — similar to a full-bodied wine.<br><br>
+          <strong>Genshu (undiluted)</strong> = 17–20%<br>
+          <strong>Standard</strong> = 14–16%<br>
+          <strong>Low-alcohol styles</strong> = 8–13%<br>
+          <strong>Sparkling</strong> = 5–8%<br><br>
+          <strong>Quick tip for customers:</strong> "It's similar strength to wine — about 15%." This reassures people who think sake is very strong (confusing it with shochu or spirits).</div>
+        </div>
+
+        <div class="label-detail" id="detail-rice">
+          <div class="ld-title">Rice Type — Sakamai 酒米</div>
+          <div class="ld-body"><strong>Sake rice (sakamai) is different from table rice</strong> — larger grains, higher starch content, lower protein.<br><br>
+          <strong>Yamada Nishiki</strong> — King of sake rice. Rich, full, complex. Widely used in premium sake.<br>
+          <strong>Omachi</strong> — Heirloom variety. Earthy, mineral, bold. Harder to grow.<br>
+          <strong>Gohyakumangoku</strong> — Light, clean, neutral. Common in Ginjo styles.<br>
+          <strong>Miyama Nishiki</strong> — Grown in cold climates. Crisp, clean, elegant.<br><br>
+          <strong>Quick tip:</strong> Think of it like grape varieties in wine — same classification, different rice = different flavour.</div>
+        </div>
+
+        <div class="label-detail" id="detail-yeast">
+          <div class="ld-title">Yeast — Kobo 酵母</div>
+          <div class="ld-body"><strong>Yeast drives fermentation and shapes the aroma profile</strong> of the sake more than almost anything else.<br><br>
+          <strong>No. 9</strong> — Most widely used. Fruity, elegant, apple and pear aroma. Standard for Ginjo.<br>
+          <strong>No. 7</strong> — Clean, mild, reliable. Good all-rounder.<br>
+          <strong>No. 14 (Kanazawa)</strong> — Fragrant, tropical, melon. Common in premium Ginjo.<br>
+          <strong>Uonuma / House yeasts</strong> — Brewery-specific, proprietary character.<br><br>
+          <strong>Quick tip:</strong> Most labels don't list the yeast — it's a bonus detail when they do. Yeast No. 9 is behind the "Ginjo aroma" many people love.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TOP 4 RICE TYPES ══ -->
+    <div class="card" data-cat="rice">
+      <div class="card-header"><span class="card-dot dot-rice"></span><span class="card-title">Top 4 Sake Rice Types</span><span class="card-tag">Sakamai</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">What is it</span><span class="row-val">Sake rice is specially grown with large, starchy grains designed for brewing. Like grape varieties in wine, different rice = different flavour character.</span></div>
+        <div class="row"><span class="row-label">Tap to learn</span>
+          <div class="pills-row">
+            <span class="style-pill" onclick="openDrawer('yamada',this)">Yamada Nishiki</span>
+            <span class="style-pill" onclick="openDrawer('omachi',this)">Omachi</span>
+            <span class="style-pill" onclick="openDrawer('gohyaku',this)">Gohyakumangoku</span>
+            <span class="style-pill" onclick="openDrawer('miyama',this)">Miyama Nishiki</span>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-yamada">
+          <div class="drawer-header"><span class="drawer-title">Yamada Nishiki 山田錦</span><button class="drawer-close" onclick="closeDrawer('yamada')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Nickname</span><span class="d-val"><strong>"King of Sake Rice"</strong> — the most prized and widely used premium sake rice.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Region</span><span class="d-val">Primarily Hyogo Prefecture. Very specific growing conditions required.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Rich, full, complex and elegant. Deep umami, balanced fruit, long finish. Versatile across all classifications.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Used for</span><span class="d-val">Predominantly Daiginjo and premium Junmai styles. The benchmark rice.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "If a sake lists Yamada Nishiki on the label, it's a quality signal — like seeing Grand Cru on a Burgundy. The brewer has chosen the best rice available."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-omachi">
+          <div class="drawer-header"><span class="drawer-title">Omachi 雄町</span><button class="drawer-close" onclick="closeDrawer('omachi')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Nickname</span><span class="d-val"><strong>"Phantom Rice"</strong> — ancient heirloom variety, nearly extinct, now revived. Omachi fans are passionate.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Region</span><span class="d-val">Okayama Prefecture. Difficult to grow — tall plants, prone to falling over.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Earthy, bold, mineral, savoury umami. Deeper and more rustic than Yamada Nishiki. Dry and complex.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Used for</span><span class="d-val">Junmai styles, bold Ginjo. Favoured by sake connoisseurs.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Omachi has a cult following among sake lovers — it makes bold, earthy sake with a lot of character. If someone says they like natural wine or funky flavours, Omachi is a great recommendation."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-gohyaku">
+          <div class="drawer-header"><span class="drawer-title">Gohyakumangoku 五百万石</span><button class="drawer-close" onclick="closeDrawer('gohyaku')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Region</span><span class="d-val">Niigata Prefecture and across northern Japan. Second most planted sake rice.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Light, clean, neutral, crisp. Subtle aroma, refreshing, easy-drinking. Less complex than Yamada Nishiki.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Used for</span><span class="d-val">Ginjo and lighter Junmai styles. The "clean and dry" Niigata style is largely due to this rice.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Sake made with Gohyakumangoku tends to be clean and light — great for someone who wants something crisp and refreshing rather than bold and complex."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-miyama">
+          <div class="drawer-header"><span class="drawer-title">Miyama Nishiki 美山錦</span><button class="drawer-close" onclick="closeDrawer('miyama')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Region</span><span class="d-val">Nagano and Tohoku regions. Cold-weather rice — thrives at high altitude and low temperatures.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour</span><span class="d-val">Crisp, elegant, clean. Light fruit, floral, mineral, slightly dry. Refined and delicate.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Used for</span><span class="d-val">Ginjo and premium Junmai styles. Known for producing elegant, aromatic sake in cold-climate breweries.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Miyama Nishiki tends to produce elegant, delicate sake — well suited for customers who enjoy light, floral whites like Pinot Gris or Sauvignon Blanc."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 4 FLAVOUR PROFILES ══ -->
+    <div class="card" data-cat="flavour">
+      <div class="card-header"><span class="card-dot dot-flavour"></span><span class="card-title">4 Flavour Profiles</span><span class="card-tag">SSI Framework</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">What is it</span><span class="row-val">The SSI (Sake Service Institute) groups all sake into 4 flavour types. A quick way to guide customers to the right style.</span></div>
+        <div class="row"><span class="row-label">Tap to learn</span>
+          <div class="pills-row">
+            <span class="style-pill" onclick="openDrawer('kunshu',this)">薫酒 Kunshu</span>
+            <span class="style-pill" onclick="openDrawer('soshu',this)">爽酒 Soshu</span>
+            <span class="style-pill" onclick="openDrawer('jukushu',this)">熟酒 Jukushu</span>
+            <span class="style-pill" onclick="openDrawer('junshu',this)">醇酒 Junshu</span>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-kunshu">
+          <div class="drawer-header"><span class="drawer-title">薫酒 Kunshu — Fragrant</span><button class="drawer-close" onclick="closeDrawer('kunshu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Character</span><span class="d-val"><strong>Highly aromatic, fruity, floral.</strong> The most fragrant category. Aroma-driven.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Aroma</span><span class="d-val">Apple, pear, melon, banana, white flowers, tropical fruit, lychee.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Taste</span><span class="d-val">Light to medium body, clean, smooth, gentle sweetness, elegant finish.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Classification</span><span class="d-val">Ginjo, Daiginjo, Junmai Ginjo, Junmai Daiginjo.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Well chilled (8–12°C). White wine glass or Ginjo glass.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Sashimi</span><span class="d-pill">Oysters</span><span class="d-pill">Light seafood</span><span class="d-pill">On its own</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "If you enjoy floral, fruity white wines like Riesling or Sauvignon Blanc, Kunshu sake is your style — aromatic, delicate, and best served cold."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-soshu">
+          <div class="drawer-header"><span class="drawer-title">爽酒 Soshu — Light & Clean</span><button class="drawer-close" onclick="closeDrawer('soshu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Character</span><span class="d-val"><strong>Light, clean, refreshing, subtle.</strong> The most approachable and food-friendly category.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Aroma</span><span class="d-val">Mild, subtle. Light rice, faint floral, clean grain. Aroma is not the focus.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Taste</span><span class="d-val">Light body, dry, crisp, refreshing. Clean finish. Effortlessly easy to drink.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Classification</span><span class="d-val">Honjozo, lighter Junmai, some futsushu (table sake).</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Chilled or room temp. Ochoko or small glass.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Tempura</span><span class="d-pill">Edamame</span><span class="d-pill">Sushi</span><span class="d-pill">Almost anything</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Soshu is the Pinot Grigio of sake — light, clean, goes with everything. If someone wants something easy and refreshing that won't overpower their food, this is it."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-jukushu">
+          <div class="drawer-header"><span class="drawer-title">熟酒 Jukushu — Rich & Aged</span><button class="drawer-close" onclick="closeDrawer('jukushu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Character</span><span class="d-val"><strong>Deep, complex, aged character.</strong> The rarest and most adventurous category. For experienced sake drinkers.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Aroma</span><span class="d-val">Caramel, soy, dried fruit, honey, mushroom, sherry-like, amber. Dark and complex.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Taste</span><span class="d-val">Full body, rich, intense, long finish. Almost wine-like in complexity.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Classification</span><span class="d-val">Koshu (aged sake), some Yamahai/Kimoto aged styles.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Room temp or slightly warm. Small pour — very intense.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Foie gras</span><span class="d-pill">Blue cheese</span><span class="d-pill">Dark chocolate</span><span class="d-pill">Rich stews</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Jukushu is aged sake — think of it like Madeira or sherry. Deep, complex, and totally unlike fresh sake. For adventurous drinkers who want something truly unique."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-junshu">
+          <div class="drawer-header"><span class="drawer-title">醇酒 Junshu — Full & Earthy</span><button class="drawer-close" onclick="closeDrawer('junshu')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Character</span><span class="d-val"><strong>Full-bodied, rich, earthy, savoury.</strong> The most food-friendly and umami-forward category. The "red wine" of sake.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Aroma</span><span class="d-val">Rice, earth, grain, subtle fruit, savoury, lactic (Kimoto styles). Understated but deep.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Taste</span><span class="d-val">Full body, rich umami, slightly dry, lingering. Warming and satisfying.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Classification</span><span class="d-val">Full-bodied Junmai, Kimoto, Yamahai styles.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Serve</span><span class="d-val">Room temp to warm (40–45°C). Ochoko or small ceramic cup. Excellent warmed.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Pairs with</span><div class="d-pills"><span class="d-pill">Grilled meats</span><span class="d-pill">Rich stews</span><span class="d-pill">Aged cheese</span><span class="d-pill">Miso dishes</span></div></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 How to sell it:</strong> "Junshu is the bold, full-bodied sake style — think of it like a full-bodied red wine. It has earthy, savoury flavours and goes amazingly with rich food. Try it warm in winter — it's completely different from cold sake."</div>
+          </div>
+        </div>
+
+        <div class="row"><span class="row-label">Quick guide</span><span class="row-val"><strong>Kunshu</strong> = fragrant & fruity · <strong>Soshu</strong> = light & clean · <strong>Junshu</strong> = full & earthy · <strong>Jukushu</strong> = aged & complex</span></div>
+      </div>
+    </div>
+
+    <!-- ══ PRODUCTION METHODS ══ -->
+    <div class="card" data-cat="production">
+      <div class="card-header"><span class="card-dot dot-production"></span><span class="card-title">Production Methods</span><span class="card-tag">How Sake Is Made</span></div>
+      <div class="card-body">
+        <div class="row"><span class="row-label">What is it</span><span class="row-val">A plain-English summary of how sake is brewed — useful for answering curious customer questions.</span></div>
+        <div class="row"><span class="row-label">Tap to learn</span>
+          <div class="pills-row">
+            <span class="style-pill" onclick="openDrawer('koji',this)">Koji Making</span>
+            <span class="style-pill" onclick="openDrawer('sandan',this)">3-Stage Brewing</span>
+            <span class="style-pill" onclick="openDrawer('yeast-starter',this)">Yeast Starter</span>
+            <span class="style-pill" onclick="openDrawer('pasteurisation',this)">Pasteurisation</span>
+            <span class="style-pill" onclick="openDrawer('dilution',this)">Dilution</span>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-koji">
+          <div class="drawer-header"><span class="drawer-title">Koji Making — The Heart of Sake</span><button class="drawer-close" onclick="closeDrawer('koji')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">What is it</span><span class="d-val"><strong>Koji (Aspergillus oryzae) is a mould</strong> grown on steamed rice. It produces enzymes that convert rice starch into fermentable sugars — the essential first step in sake brewing.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Why it matters</span><span class="d-val">Koji is what makes sake unique. Unlike wine (sugar already in grapes) or beer (malting converts starch), sake uses koji to do this conversion simultaneously with fermentation — called <strong>multiple parallel fermentation</strong>.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Flavour impact</span><span class="d-val">Koji produces amino acids (umami), organic acids, and sugars. The quality and proportion of koji rice directly affects the body, sweetness, and complexity of the final sake.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Sake is the only alcohol that converts starch to sugar and ferments it at the same time — thanks to this mould called koji. It's why sake is so unique and complex compared to other drinks."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-sandan">
+          <div class="drawer-header"><span class="drawer-title">3-Stage Brewing — Sandan Jikomi</span><button class="drawer-close" onclick="closeDrawer('sandan')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">What is it</span><span class="d-val">Ingredients are added in <strong>3 separate stages over 4 days</strong> to build up the mash gradually.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Why it matters</span><span class="d-val">Gradual addition protects the yeast from shock and allows the brewer to control fermentation. All designated sake must use this method.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Premium sake takes weeks to brew carefully in stages — this is partly why quality sake costs more than people expect."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-yeast-starter">
+          <div class="drawer-header"><span class="drawer-title">Yeast Starter — Shubo / Moto</span><button class="drawer-close" onclick="closeDrawer('yeast-starter')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Sokujo</span><span class="d-val"><strong>Quick starter</strong> — lactic acid added directly. Most common modern method. Clean, neutral, consistent.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Kimoto</span><span class="d-val"><strong>Traditional</strong> — natural lactic acid bacteria, pole-ramming process. Complex, earthy, robust.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Yamahai</span><span class="d-val"><strong>Modified traditional</strong> — no pole-ramming but wild lactic bacteria. Rich, complex, gamey.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Kimoto and Yamahai on the label = more complex, earthy sake. Think natural wine vs conventional — more personality."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-pasteurisation">
+          <div class="drawer-header"><span class="drawer-title">Pasteurisation — Hiire 火入れ</span><button class="drawer-close" onclick="closeDrawer('pasteurisation')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">Standard</span><span class="d-val">Heated twice — once after brewing, once before shipping. Stable at room temp, longer shelf life.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Nama</span><span class="d-val">Zero pasteurisation — fresh, vibrant, <strong>must stay refrigerated at all times</strong>.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Nama Chozo</span><span class="d-val">Pasteurised before shipping only. Slightly fresher than fully pasteurised.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "If the label says Nama, keep it cold. All other sake is fine at room temp until opened, then refrigerate and drink within a few weeks."</div>
+          </div>
+        </div>
+
+        <div class="style-drawer" id="drawer-dilution">
+          <div class="drawer-header"><span class="drawer-title">Dilution — Kaga Mizu 加水</span><button class="drawer-close" onclick="closeDrawer('dilution')">×</button></div>
+          <div class="drawer-body">
+            <div class="d-row"><span class="d-label">What is it</span><span class="d-val">Most sake is diluted with water after brewing to bring alcohol from ~18–20% down to ~14–16%.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Genshu</span><span class="d-val">No dilution — bottled at full strength (17–20% ABV). Bolder and more concentrated.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-row"><span class="d-label">Water</span><span class="d-val">Soft water (Fushimi, Niigata) = soft, delicate sake. Hard water (Nada) = bold, dry sake.</span></div>
+            <div class="d-divider"></div>
+            <div class="d-sell"><strong>💬 Staff tip:</strong> "Water is as important to sake as terroir is to wine. Nada (Kobe) sake is bold; Fushimi (Kyoto) sake is soft and elegant."</div>
+          </div>
+        </div>
+
+        <div class="row"><span class="row-label">In short</span><span class="row-val">Rice + Koji + Water + Yeast → ferment 3–5 weeks → press → filter → pasteurise → dilute → bottle. The most labour-intensive fermented drink in the world.</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>SSI reference · Internal use</span>
+    <a href="https://www.everythingwine.ca" target="_blank">everythingwine.ca ↗</a>
+  </footer>
+
+</div>
+
+<script>
+  function filter(cat) {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.card').forEach(card => {
+      card.classList.toggle('hidden', cat !== 'all' && card.dataset.cat !== cat);
+    });
+    document.querySelectorAll('.style-drawer').forEach(d => d.classList.remove('open'));
+    document.querySelectorAll('.label-detail').forEach(d => d.classList.remove('open'));
+  }
+
+  function openDrawer(id, pill) {
+    const drawer = document.getElementById('drawer-' + id);
+    if (!drawer) return;
+    const isOpen = drawer.classList.contains('open');
+    document.querySelectorAll('.style-drawer').forEach(d => d.classList.remove('open'));
+    if (!isOpen) {
+      drawer.classList.add('open');
+      setTimeout(() => drawer.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }
+
+  function closeDrawer(id) {
+    const drawer = document.getElementById('drawer-' + id);
+    if (drawer) drawer.classList.remove('open');
+  }
+
+  function toggleLabelDetail(field) {
+    const el = document.getElementById('detail-' + field);
+    if (!el) return;
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.label-detail').forEach(d => d.classList.remove('open'));
+    if (!isOpen) {
+      el.classList.add('open');
+      setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
+  }
+</script>
+</body>
+</html>
